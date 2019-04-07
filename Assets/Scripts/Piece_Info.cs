@@ -5,9 +5,12 @@ using UnityEngine;
 public class Piece_Info : MonoBehaviour {
 
     public List<GameObject> nerbyPieces = new List<GameObject>();
+    public bool hitted = false;
 
     public void Hitted()
     {
+        hitted = true;
+
         Joint[] joints = GetComponents<Joint>();
 
         foreach (Joint joint in joints)
@@ -20,6 +23,7 @@ public class Piece_Info : MonoBehaviour {
             {
                 if(joint.connectedBody.gameObject == this.gameObject)
                 {
+                    joint.gameObject.GetComponent<Piece_Info>().hitted = true;
                     Destroy(joint);
                 }
             }

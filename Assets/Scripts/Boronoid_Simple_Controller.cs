@@ -19,7 +19,7 @@ public class Boronoid_Simple_Controller : MonoBehaviour {
                     {
                         transform.GetChild(i).GetComponent<Piece_Info>().nerbyPieces.Add(transform.GetChild(j).gameObject);
                         FixedJoint joint = transform.GetChild(i).gameObject.AddComponent<FixedJoint>();
-                        //joint.breakForce = 100;
+                        
                         joint.connectedBody = transform.GetChild(j).GetComponent<Rigidbody>();
                     }
                 }

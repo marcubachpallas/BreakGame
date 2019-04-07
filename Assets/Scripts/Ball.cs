@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour {
 
+    private void Start()
+    {
+        Destroy(this.gameObject, 3);
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         /* collision.collider.gameObject.GetComponent<Rigidbody>().isKinematic = false;
@@ -15,7 +20,17 @@ public class Ball : MonoBehaviour {
 
          collision.gameObject.GetComponent<BoxCollider>().enabled = false;*/
 
-        collision.collider.gameObject.GetComponent<Piece_Info>().Hitted();
+        if (collision.collider.gameObject.GetComponent<Piece_Info>())
+        {
+            collision.collider.gameObject.GetComponent<Piece_Info>().Hitted();
+            if(collision.collider.transform.parent.tag == "Piramid")
+            {
+                Camera.main.GetComponent<PlayerController>().UpdateBullets(5);
+                collision.collider.transform.parent.tag = "Untagged";
+            }
+        }
 
     }
+
+
 }
