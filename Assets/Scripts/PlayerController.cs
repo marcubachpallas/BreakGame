@@ -11,20 +11,31 @@ public class PlayerController : MonoBehaviour {
 
     public int bullets = 25;
 
-    public TextMeshProUGUI bulletsLeft, timeText;
+    public TextMeshProUGUI bulletsLeft, timeText, bestTime;
 
     public GameObject[] roomsPrefab;
 
     int roomCount = 3;
 
-
+    public AudioClip[] fxStone, fxDmg;
+    public AudioSource musicAudio;
 
     bool ended = false;
     public GameObject playerName, button, gameover;
     // Use this for initialization
     void Start () {
+
+        StartCoroutine(FadeInAudioSource(musicAudio));
+
         bulletsLeft.text = "Bullets left: " + bullets;
         timeText.text = "Time Alive: " + (Mathf.Round(timer * 100f)/100f);
+        float besttime = PlayerPrefs.GetFloat("Value", -1);
+        bestTime.text = "Best Time: " + (Mathf.Round(besttime * 100f) / 100f); ;
+        if (besttime == -1)
+        {
+            bestTime.gameObject.SetActive(false);
+        }
+
     }
 
     // Update is called once per frame
@@ -45,7 +56,7 @@ public class PlayerController : MonoBehaviour {
 
         speed = initSpeed + ((float)roomCount / 25);
         transform.Translate(transform.forward * speed);
-        Debug.Log(speed);
+        //Debug.Log(speed);
 
 
         if (Input.touchCount > 0)
@@ -108,6 +119,7 @@ public class PlayerController : MonoBehaviour {
         {
             if (!other.gameObject.GetComponent<Piece_Info>().hitted)
             {
+                PlayFXDmg();
                 UpdateBullets(-10);
                 bulletsLeft.GetComponentInParent<Canvas>().transform.GetChild(0).GetComponent<Animation>().Play();
             }
@@ -157,8 +169,63 @@ public class PlayerController : MonoBehaviour {
 
     IEnumerator LoadScene(string sceneName, float time)
     {
+        StartCoroutine(FadeOut(musicAudio));
         yield return new WaitForSeconds(time);
         SceneManager.LoadScene(sceneName);
 
+    }
+
+    public void PlayFXStone()
+    {
+        int random = Random.Range(0, fxStone.Length);
+        AudioSource audio = this.gameObject.AddComponent<AudioSource>();
+        audio.PlayOneShot(fxStone[random]);
+        StartCoroutine(DestroyAudio(audio));
+    }
+
+    public void PlayFXDmg()
+    {
+        int random = Random.Range(0, fxDmg.Length);
+        AudioSource audio = this.gameObject.AddComponent<AudioSource>();
+        audio.PlayOneShot(fxDmg[random]);
+        StartCoroutine(DestroyAudio(audio));
+    }
+
+    IEnumerator DestroyAudio(AudioSource audio)
+    {
+        while (audio.isPlaying)
+        {
+            yield return null;
+        }
+        Destroy(audio);
+    }
+    public IEnumerator FadeOut(AudioSource source)
+    {
+
+        yield return new WaitForSeconds(1);
+        source.volume = 1f;
+
+        while (source.volume > 0.001f)
+        {
+            source.volume -= 1 * Time.deltaTime / 1;
+            yield return null;
+        }
+        source.volume = 0.0f;
+        source.Stop();
+        SceneManager.LoadScene("MainScene");
+
+    }
+
+    //Fade In the audiosource we choose
+    public IEnumerator FadeInAudioSource(AudioSource source)
+    {
+        while (source.volume < 1.0f)
+        {
+            Debug.Log(source.volume);
+            source.volume += 1 * Time.deltaTime / 1;
+            yield return null;
+        }
+        source.volume = 1.0f;
+        source.loop = true;
     }
 }

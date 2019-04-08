@@ -9,6 +9,7 @@ public class MainMenuController : MonoBehaviour
     public TextMeshPro score;
     private void Start()
     {
+        StartCoroutine(FadeInAudioSource(Camera.main.GetComponent<AudioSource>()));
         string high = PlayerPrefs.GetString("High", "");
         float value = PlayerPrefs.GetFloat("Value", -1);
         if(high == "")
@@ -35,7 +36,7 @@ public class MainMenuController : MonoBehaviour
                 {
                     if (hit.collider.gameObject.name == "Start")
                     {
-                        SceneManager.LoadScene("MainScene");
+                        StartCoroutine(FadeOut(GetComponent<AudioSource>()));
                     }
                     else if (hit.collider.gameObject.name == "LeaderBoard")
                     {
@@ -65,5 +66,33 @@ public class MainMenuController : MonoBehaviour
                 }
             }
         }*/
+    }
+
+    //Fade Out the audiosource we choose
+    public IEnumerator FadeOut(AudioSource source)
+    {
+        source.volume = 1f;
+
+        while (source.volume > 0.001f)
+        {
+            source.volume -= 1 * Time.deltaTime / 1;
+            yield return null;
+        }
+        source.volume = 0.0f;
+        source.Stop();
+        SceneManager.LoadScene("MainScene");
+
+    }
+
+    //Fade In the audiosource we choose
+    public IEnumerator FadeInAudioSource(AudioSource source)
+    {
+        while (source.volume < 1.0f)
+        {
+            source.volume += 1 * Time.deltaTime / 1;
+            yield return null;
+        }
+        source.volume = 1.0f;
+        source.loop = true;
     }
 }

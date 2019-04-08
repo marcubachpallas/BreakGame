@@ -22,12 +22,14 @@ public class Ball : MonoBehaviour {
 
         if (collision.collider.gameObject.GetComponent<Piece_Info>())
         {
+            Camera.main.GetComponent<PlayerController>().PlayFXStone();
             collision.collider.gameObject.GetComponent<Piece_Info>().Hitted();
             if(collision.collider.transform.parent.tag == "Piramid")
             {
                 Camera.main.GetComponent<PlayerController>().UpdateBullets(5);
                 collision.collider.transform.parent.tag = "Untagged";
             }
+
         }
 
     }
