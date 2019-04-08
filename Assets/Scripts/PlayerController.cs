@@ -3,35 +3,76 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-public class PlayerController : MonoBehaviour {
 
+public class PlayerController : MonoBehaviour {
+    float timer = 0;
     public float initSpeed = 0, speed;
     public GameObject bulletPrefab;
 
     public int bullets = 25;
 
-    public TextMeshProUGUI bulletsLeft;
+    public TextMeshProUGUI bulletsLeft, timeText;
 
     public GameObject[] roomsPrefab;
 
-    int roomCount = 2;
+    int roomCount = 3;
+
+
+
+    bool ended = false;
+    public GameObject playerName, button, gameover;
     // Use this for initialization
     void Start () {
-            bulletsLeft.text = "Bullets left: " + bullets;
+        bulletsLeft.text = "Bullets left: " + bullets;
+        timeText.text = "Time Alive: " + (Mathf.Round(timer * 100f)/100f);
     }
 
     // Update is called once per frame
     void Update () {
-        speed = initSpeed + ((float)roomCount / 50);
+        if (bullets <= 0)
+        {
+            if(!ended)
+                EndGame();
+            else
+            {
+                return;
+            }
+        }
+        
+
+        timer += Time.deltaTime;
+        timeText.text = "Time Alive: " + (Mathf.Round(timer * 100f) / 100f);
+
+        speed = initSpeed + ((float)roomCount / 25);
         transform.Translate(transform.forward * speed);
         Debug.Log(speed);
 
-        if (bullets <= 0)
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);      
-        }
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            
+            if(touch.phase == TouchPhase.Began)
+            {
+                bullets--;
+                bulletsLeft.text = "Bullets left: " + bullets;
+                //Debug.Log("fire");
+                GameObject bullet = Instantiate(bulletPrefab);
+                bullet.transform.position = this.gameObject.transform.position;
+                //bullet.transform.localScale = Vector3.one;
+                bullet.transform.rotation = transform.rotation;
+
+                //Rigidbody rb = bullet.GetComponent<Rigidbody>();
+
+                Ray ray = Camera.main.ScreenPointToRay(touch.position);
+
+                Vector3 force = ray.direction * 10000;
+                //Debug.Log(force);
+                Debug.DrawRay(ray.origin, ray.direction * 10, Color.red, 5, false);
+                bullet.GetComponent<Rigidbody>().AddForce(force);
+            }
+        }
+        /*if (Input.GetMouseButtonDown(0))
         {
             bullets--;
             bulletsLeft.text = "Bullets left: " + bullets;
@@ -41,7 +82,7 @@ public class PlayerController : MonoBehaviour {
             //bullet.transform.localScale = Vector3.one;
             bullet.transform.rotation = transform.rotation;
 
-            Rigidbody rb = bullet.GetComponent<Rigidbody>();
+            //Rigidbody rb = bullet.GetComponent<Rigidbody>();
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -50,7 +91,7 @@ public class PlayerController : MonoBehaviour {
             Debug.DrawRay(ray.origin, ray.direction*10, Color.red,5,false);
             bullet.GetComponent<Rigidbody>().AddForce(force);
 
-        }
+        }*/
     }
 
     public void UpdateBullets(int i)
@@ -61,7 +102,7 @@ public class PlayerController : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.gameObject.name.ToString());
+        //Debug.Log(other.gameObject.name.ToString());
 
         if (other.gameObject.GetComponent<Piece_Info>())
         {
@@ -80,5 +121,44 @@ public class PlayerController : MonoBehaviour {
             GameObject instance = Instantiate(roomsPrefab[random]);
             instance.transform.position = new Vector3(0, 0, 100 * roomCount);
         }
+    }
+
+    public void Save()
+    {
+        PlayerPrefs.SetString("High", playerName.GetComponent<TMP_InputField>().text);
+        PlayerPrefs.SetFloat("Value", (Mathf.Round(timer * 100f) / 100f));
+        StartCoroutine(LoadScene(SceneManager.GetActiveScene().name, 2));
+        playerName.SetActive(false);
+        button.SetActive(false);
+        gameover.transform.localPosition = new Vector3(0, 0, 25);
+    }
+
+    void EndGame()
+    {
+        ended = true;
+        float value = PlayerPrefs.GetFloat("Value", -1);
+
+        if (timer > value)
+        {
+            playerName.SetActive(true);
+            button.SetActive(true);
+            gameover.SetActive(true);
+            //open canvas to name
+        }
+        else
+        {
+            gameover.SetActive(true);
+            gameover.transform.localPosition = new Vector3(0, 0, 25);
+
+            StartCoroutine(LoadScene(SceneManager.GetActiveScene().name, 2));
+        }
+
+    }
+
+    IEnumerator LoadScene(string sceneName, float time)
+    {
+        yield return new WaitForSeconds(time);
+        SceneManager.LoadScene(sceneName);
+
     }
 }
